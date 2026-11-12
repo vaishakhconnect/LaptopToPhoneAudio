@@ -1,70 +1,153 @@
-LAPTOP TO PHONE AUDIO - WINDOWS SETUP
-=====================================
+# LaptopToPhoneAudio
 
-WHAT IT DOES
-------------
-Streams the laptop's default playback audio (YouTube, VLC, music players, etc.)
-to a web page opened on your Android phone. The phone plays the stream through
-its speaker or connected headphones.
+![LaptopToPhoneAudio Banner](assets/banner.png)
 
-REQUIREMENTS
-------------
-- Windows 10/11 laptop
-- Python 3.10 or newer
-- VS Code
-- Android phone with Chrome
-- Both devices connected to the same local network (phone hotspot is fine)
+**Stream your Windows laptop audio directly to your phone over a local network.**
 
-SETUP IN VS CODE
-----------------
-1. Extract this ZIP file.
-2. Open the extracted LaptopToPhoneAudio folder in VS Code.
-3. Open Terminal > New Terminal.
-4. Run these commands:
+LaptopToPhoneAudio is a lightweight Python-based application that captures audio playing on your laptop and streams it to a phone through a web browser.
 
-   python -m venv venv
-   venv\Scripts\activate
-   python -m pip install --upgrade pip
-   pip install -r requirements.txt
+## Features
 
-START THE SERVER
-----------------
-Run:
+- Real-time laptop audio streaming
+- Browser-based interface
+- No additional application required on the phone
+- Supports local Wi-Fi and USB tethering
+- Simple Python and Flask setup
 
-   python app.py
+## Screenshots
 
-Find the laptop's Wi-Fi IPv4 address:
-   ipconfig
+### Laptop Interface
+![Desktop Interface](assets/screenshots/desktop.png)
 
-Look under the Wi-Fi adapter for "IPv4 Address", for example:
-   192.168.43.120
+### Phone Interface
+![Phone Interface](assets/screenshots/phone.png)
 
-On your phone, connected to the same hotspot/Wi-Fi, open:
-   http://192.168.43.120:5000
+## Technologies Used
 
-Replace the example IP with the laptop's actual IPv4 address.
-Tap Play on the phone, then play audio on the laptop.
+- Python
+- Flask
+- SoundCard
+- NumPy
+- HTML, CSS and JavaScript
+- Web Audio API
 
-WINDOWS FIREWALL
-----------------
-If Windows asks whether Python can communicate on the network, allow access
-on Private networks. If the phone cannot connect, check that both devices are
-on the same hotspot/Wi-Fi and that the network is set to Private in Windows.
+## Installation
 
-TROUBLESHOOTING
----------------
-- No audio: check that the laptop's correct output device is selected as the
-  Windows default playback device.
-- Connection refused: make sure "python app.py" is still running.
-- Phone cannot open page: verify the laptop IPv4 address and firewall settings.
-- Choppy sound: keep both devices close to the Wi-Fi hotspot and close other
-  heavy network activity.
-- Stop streaming by tapping Stop or pressing Ctrl+C in the VS Code terminal.
+### 1. Clone the repository
 
-NOTES
------
-- Internet is not needed once the local network is established.
-- This prototype captures the default Windows playback device, not an
-  individual application's audio.
-- Audio is transmitted as uncompressed 44.1 kHz, 16-bit stereo PCM.
-- Latency and reliability depend on the local network and phone browser.
+```bash
+git clone https://github.com/vaishakhconnect/LaptopToPhoneAudio.git
+```
+
+### 2. Open the project folder
+
+```bash
+cd LaptopToPhoneAudio
+```
+
+### 3. Create a virtual environment
+
+```bash
+py -m venv .venv
+```
+
+### 4. Activate the environment (Windows PowerShell)
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+### 5. Install dependencies
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+## Usage
+
+### 1. Start the server
+
+```bash
+python app.py
+```
+
+Keep the terminal running while streaming.
+
+### 2. Open the application on your laptop
+
+Visit:
+
+```text
+http://127.0.0.1:5000
+```
+
+### 3. Find your laptop's IP address
+
+Open another terminal and run:
+
+```powershell
+ipconfig
+```
+
+Find the IPv4 address of the network adapter currently connecting your laptop to your phone or Wi-Fi network.
+
+### 4. Connect your phone
+
+Enter the following address in your phone's browser:
+
+```text
+http://YOUR_LAPTOP_IP:5000
+```
+
+Replace `YOUR_LAPTOP_IP` with the actual laptop IPv4 address.
+
+### 5. Start listening
+
+Play audio on your laptop and use the application on your phone.
+
+## Network Requirements
+
+- Both devices must be connected to the same local network.
+- USB tethering or a shared Wi-Fi hotspot can also be used.
+- Allow Python through Windows Firewall on private networks if prompted.
+- Do not expose the server directly to the public internet.
+
+## Troubleshooting
+
+| Problem | Possible solution |
+|---|---|
+| Phone cannot open the page | Check that both devices are on the same network |
+| Connection refused | Make sure `python app.py` is still running |
+| No audio | Check the Windows default playback device |
+| Firewall blocks connection | Allow Python on the trusted private network |
+| Wrong IP address | Check `ipconfig` again for the active adapter |
+
+## Project Structure
+
+```text
+LaptopToPhoneAudio/
+│
+├── assets/
+│   ├── banner.png
+│   └── screenshots/
+│       ├── desktop.png
+│       └── phone.png
+│
+├── templates/
+│   └── index.html
+│
+├── app.py
+├── requirements.txt
+├── .gitignore
+└── README.md
+```
+
+## Author
+
+**Vaishakh K**
+
+GitHub: [@vaishakhconnect](https://github.com/vaishakhconnect)
+
+---
+
+If you find this project useful, consider giving the repository a ⭐ on GitHub!
