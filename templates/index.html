@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laptop Audio Receiver</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: grid; place-items: center;
+      padding: 24px; background: #101522; color: #fff;
+      font-family: system-ui, Arial, sans-serif;
+    }
+    .player {
+      width: min(100%, 420px); padding: 32px 22px; text-align: center;
+      background: #202b40; border: 1px solid #34435d; border-radius: 24px;
+      box-shadow: 0 18px 50px #0005;
+    }
+    .symbol { font-size: 52px; margin-bottom: 8px; }
+    h1 { font-size: 25px; margin: 8px 0; }
+    p { color: #b9c5d8; line-height: 1.5; }
+    button {
+      border: 0; border-radius: 30px; padding: 14px 28px; margin: 8px 4px;
+      font-size: 16px; font-weight: 700; cursor: pointer;
+    }
+    #play { background: #32d583; color: #092315; }
+    #stop { background: #ff7777; color: #2b0909; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    #status { margin-top: 22px; font-size: 14px; }
+    .hint { font-size: 12px; color: #8798b2; margin-top: 24px; }
+  </style>
+</head>
+<body>
+  <main class="player">
+    <div class="symbol">🎵</div>
+    <h1>Laptop Audio</h1>
+    <p>Use your phone as a wireless speaker.</p>
+    <button id="play" type="button">▶ Play</button>
+    <button id="stop" type="button" disabled>■ Stop</button>
+    <p id="status" role="status">Disconnected</p>
+    <p class="hint">Keep this page open while audio is streaming.</p>
+  </main>
+
+<script>
+let audioContext = null;
+let abortController = null;
+let stopped = true;
+let nextStartTime = 0;
+
+const statusText = document.getElementById("status");
+const playButton = document.getElementById("play");
+const stopButton = document.getElementById("stop");
+
+async function startAudio() {
+  if (!stopped) return;
+
+  stopped = false;
+  playButton.disabled = true;
+  stopButton.disabled = false;
+  statusText.textContent = "Connecting...";
+
+  try {
+    audioContext = new AudioContext({ sampleRate: 44100 });
+    await audioContext.resume();
+    nextStartTime = audioContext.currentTime + 0.15;
+
+    abortController = new AbortController();
+    const response = await fetch("/audio", {
+      cache: "no-store",
+      signal: abortController.signal
+    });
+
+    if (!response.ok || !response.body) {
+      throw new Error("Could not connect to the audio stream.");
+    }
+
+    statusText.textContent = "Connected — playing laptop audio";
+    const reader = response.body.getReader();
+
+    // Each server block is 2048 stereo frames = 8192 bytes.
+    const blockBytes = 2048 * 2 * 2;
+    let pending = new Uint8Array(0);
+
+    while (!stopped) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      const combined = new Uint8Array(pending.length + value.length);
+      combined.set(pending);
+      combined.set(value, pending.length);
+
+      let offset = 0;
+      while (combined.length - offset >= blockBytes) {
+        playPcmBlock(combined.subarray(offset, offset + blockBytes));
+        offset += blockBytes;
+      }
+      pending = combined.slice(offset);
+    }
+  } catch (error) {
+    if (!stopped) {
+      statusText.textContent = "Error: " + error.message;
+    }
+  } finally {
+    if (!stopped) stopAudio();
+  }
+}
+
+function playPcmBlock(bytes) {
+  if (!audioContext || stopped) return;
+
+  const frames = bytes.length / 4;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const buffer = audioContext.createBuffer(2, frames, 44100);
+  const left = buffer.getChannelData(0);
+  const right = buffer.getChannelData(1);
+
+  for (let i = 0; i < frames; i++) {
+    left[i] = view.getInt16(i * 4, true) / 32768;
+    right[i] = view.getInt16(i * 4 + 2, true) / 32768;
+  }
+
+  const source = audioContext.createBufferSource();
+  source.buffer = buffer;
+  source.connect(audioContext.destination);
+
+  // Keep blocks queued in order to avoid gaps between audio chunks.
+  nextStartTime = Math.max(nextStartTime, audioContext.currentTime + 0.03);
+  source.start(nextStartTime);
+  nextStartTime += buffer.duration;
+}
+
+function stopAudio() {
+  stopped = true;
+
+  if (abortController) {
+    abortController.abort();
+    abortController = null;
+  }
+  if (audioContext) {
+    audioContext.close();
+    audioContext = null;
+  }
+
+  playButton.disabled = false;
+  stopButton.disabled = true;
+  statusText.textContent = "Disconnected";
+}
+
+playButton.addEventListener("click", startAudio);
+stopButton.addEventListener("click", stopAudio);
+</script>
+</body>
+</html>
