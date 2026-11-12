@@ -34,19 +34,17 @@ It creates a local audio streaming server using Flask. Your phone connects to th
 
 ## Screenshots
 
-<!-- Add your actual screenshots to assets/screenshots before enabling these images. -->
+## Screenshots
 
-<!--
 ### Laptop Interface
 <p align="center">
-  <img src="assets/screenshots/desktop.png" alt="Laptop interface" width="80%">
+  <img src="assets/screenshots/desktop.png" width="80%">
 </p>
 
 ### Phone Interface
 <p align="center">
-  <img src="assets/screenshots/phone.png" alt="Phone interface" width="40%">
+  <img src="assets/screenshots/phone.png" width="40%">
 </p>
--->
 
 ## Technologies Used
 
